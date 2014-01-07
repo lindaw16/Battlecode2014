@@ -16,24 +16,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>bin</name>
-			<type>2</type>
-			<location>/Applications/Battlecode2014/bin</location>
-		</link>
-		<link>
 			<name>examplefuncsplayer</name>
 			<type>2</type>
 			<location>/Applications/Battlecode2014/bin/examplefuncsplayer</location>
-		</link>
-		<link>
-			<name>lib</name>
-			<type>2</type>
-			<location>/Applications/Battlecode2014/lib</location>
-		</link>
-		<link>
-			<name>teams</name>
-			<type>2</type>
-			<location>/Applications/Battlecode2014/teams</location>
 		</link>
 	</linkedResources>
 </projectDescription>
