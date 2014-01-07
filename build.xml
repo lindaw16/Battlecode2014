@@ -1,4 +1,4 @@
-<project name="Battlecode2014" basedir="." default="run">
+<project name="Battlecode 2014" basedir="." default="run">
 
   <description>
     Build file for Battlecode 2014 players.
