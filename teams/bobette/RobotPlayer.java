@@ -1,6 +1,6 @@
 package bobette;
 //will not build a pasture if there is not enough cows nearby
-//will not build a pasture if another one is already closeby
+//will not build a pasture if another one is already close by
 
 import battlecode.common.*;
 
@@ -56,38 +56,24 @@ public class RobotPlayer
 					rc.attackSquare(anEnemyInfo.location);									
 				}
 			}
-		}else //no enemies, build a pasture
-		{
+		} else //no enemies, build a pasture
+		  {
 			Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, distPASTR);
 			boolean isPASTR = false;
 			for (Robot r: nearbyRobots){
 				RobotInfo rInfo;
-				try {
-					rInfo = rc.senseRobotInfo(r);
-					if(rInfo.type == RobotType.PASTR){
-						isPASTR = true;
-						break;
-					}
-				} catch (GameActionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}							
+				rInfo = rc.senseRobotInfo(r);
+				if(rInfo.type == RobotType.PASTR){
+					isPASTR = true;
+					break;
+				}	
 			}
 			if (!isPASTR){
 				if (Math.random() < 0.01 && rc.isActive())
 				{
-					System.out.println("tiffany is building pasture!");
-					try
-					{
-						rc.construct(RobotType.PASTR);
-					}
-					catch (GameActionException e)
-					{
-						e.printStackTrace();
-					}
+					System.out.println("bobette is building pasture!");
+					rc.construct(RobotType.PASTR);
 				}
-
-
 			}
 		}
 		Direction chosenDirection = allDirections[(int)(randall.nextDouble()*8)];
