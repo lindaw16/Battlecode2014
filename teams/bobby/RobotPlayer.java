@@ -1,4 +1,5 @@
 package bobby;
+//will not build a pasture if another one is already closeby
 
 import battlecode.common.*;
 
