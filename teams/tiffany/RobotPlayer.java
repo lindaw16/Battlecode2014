@@ -20,7 +20,9 @@ public class RobotPlayer
 		randall.setSeed(rc.getRobot().getID());
 		mapHeight = rc.getMapHeight();
 		mapWidth = rc.getMapWidth();
-		distPASTR = (mapHeight + mapWidth) / 2 / 20 + 4;
+		distPASTR = (mapHeight + mapWidth) / 2 / 20;
+		System.out.println(mapHeight+" "+mapWidth);
+		
 		
 		while(true)
 		{
