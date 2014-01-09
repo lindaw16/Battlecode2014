@@ -1,4 +1,5 @@
 package bobby;
+//will not build a pasture if another one is already closeby
 
 import battlecode.common.*;
 
@@ -13,7 +14,7 @@ public class RobotPlayer
 				Direction spawnDir = Direction.NORTH;
 				try
 				{
-					//if the robot is active and can move in the spawn direction, and there are less than maximum robots
+					//if the robot is active and can move in the spawn direction, and there are fewer than maximum robots
 					if (rc.isActive() && rc.canMove(spawnDir) && rc.senseRobotCount() < GameConstants.MAX_ROBOTS)
 					{
 						rc.spawn(Direction.NORTH);
