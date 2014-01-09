@@ -25,14 +25,21 @@ public class RobotPlayer
 		
 		
 		while(true)
-		{
-			if (rc.getType() ==RobotType.HQ)
-			{
-				runHeadquarters();				
-			} else if (rc.getType() == RobotType.SOLDIER)
-			  {
-				runSoldier();				
-			  }
+		{	
+			try {
+				if (rc.getType() ==RobotType.HQ)
+				{
+					runHeadquarters();				
+				} else if (rc.getType() == RobotType.SOLDIER)
+				  {
+					runSoldier();				
+				  }
+			}
+			catch(Exception e){
+					System.out.println(e);
+					e.printStackTrace();
+			}
+			
 		}
 	}
 			
