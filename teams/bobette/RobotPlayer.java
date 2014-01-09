@@ -87,9 +87,16 @@ public class RobotPlayer
 	private static void runHeadquarters() throws GameActionException {
 		Direction spawnDir = Direction.NORTH;
 		//if the robot is active and can move in the spawn direction, and there are less than maximum robots
-		if (rc.isActive() && rc.canMove(spawnDir) && rc.senseRobotCount() < GameConstants.MAX_ROBOTS)
+		try
 		{
-			rc.spawn(Direction.NORTH);
+			//if the robot is active and can move in the spawn direction, and there are less than maximum robots
+			if (rc.isActive() && rc.canMove(spawnDir) && rc.senseRobotCount() < GameConstants.MAX_ROBOTS)
+			{
+				rc.spawn(Direction.NORTH);
+			}
+		} catch (GameActionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }

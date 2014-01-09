@@ -20,17 +20,26 @@ public class RobotPlayer
 		randall.setSeed(rc.getRobot().getID());
 		mapHeight = rc.getMapHeight();
 		mapWidth = rc.getMapWidth();
-		distPASTR = (mapHeight + mapWidth) / 2 / 20 + 4;
+		distPASTR = (mapHeight + mapWidth) / 2 / 20;
+		System.out.println(mapHeight+" "+mapWidth);
+		
 		
 		while(true)
-		{
-			if (rc.getType() ==RobotType.HQ)
-			{
-				runHeadquarters();				
-			} else if (rc.getType() == RobotType.SOLDIER)
-			  {
-				runSoldier();				
-			  }
+		{	
+			try {
+				if (rc.getType() ==RobotType.HQ)
+				{
+					runHeadquarters();				
+				} else if (rc.getType() == RobotType.SOLDIER)
+				  {
+					runSoldier();				
+				  }
+			}
+			catch(Exception e){
+					System.out.println(e);
+					e.printStackTrace();
+			}
+			
 		}
 	}
 			
