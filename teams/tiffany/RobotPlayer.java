@@ -20,8 +20,7 @@ public class RobotPlayer
 		randall.setSeed(rc.getRobot().getID());
 		mapHeight = rc.getMapHeight();
 		mapWidth = rc.getMapWidth();
-		distPASTR = (mapHeight + mapWidth) / 20;
-		System.out.println(mapHeight+" "+mapWidth);
+		distPASTR = (mapHeight + mapWidth) / 2 / 20 + 4;
 		
 		while(true)
 		{
@@ -68,7 +67,7 @@ public class RobotPlayer
 		} else //no enemies, build a pasture
 		 {  
 			
-			Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, 10);
+			Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, distPASTR);
 			boolean isPASTR = false;
 			for (Robot r: nearbyRobots){
 				RobotInfo rInfo;

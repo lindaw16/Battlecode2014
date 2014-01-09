@@ -11,11 +11,17 @@ public class RobotPlayer
 	public static RobotController rc;
 	static Direction allDirections[] = Direction.values();
 	static Random randall = new Random();
+	public static int mapHeight;
+	public static int mapWidth;
+	public static int distPASTR;
 	
 	public static void run(RobotController rcinput)
 	{
 		rc = rcinput;
 		randall.setSeed(rc.getRobot().getID());
+		mapHeight = rc.getMapHeight();
+		mapWidth = rc.getMapWidth();
+		distPASTR = (mapHeight + mapWidth) / 2 / 20;
 		while(true)
 		{
 			try{
@@ -52,22 +58,36 @@ public class RobotPlayer
 			}
 		}else //no enemies, build a pasture
 		{
-			if (rc.isActive())
-			{
-				if (Math.random() < 0.01 && rc.senseCowsAtLocation(rc.getLocation()) > 5 ){
-					Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, 100000);
-					boolean isPASTR = false;
-					for (Robot r: nearbyRobots){
-						RobotInfo rInfo;
-						rInfo = rc.senseRobotInfo(r);
-						isPASTR = rInfo.type == RobotType.PASTR;
+			Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, distPASTR);
+			boolean isPASTR = false;
+			for (Robot r: nearbyRobots){
+				RobotInfo rInfo;
+				try {
+					rInfo = rc.senseRobotInfo(r);
+					if(rInfo.type == RobotType.PASTR){
+						isPASTR = true;
 						break;
 					}
-					if (!isPASTR){
-						System.out.println("bobby is building pasture!");
+				} catch (GameActionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}							
+			}
+			if (!isPASTR){
+				if (Math.random() < 0.01 && rc.isActive())
+				{
+					System.out.println("tiffany is building pasture!");
+					try
+					{
 						rc.construct(RobotType.PASTR);
 					}
+					catch (GameActionException e)
+					{
+						e.printStackTrace();
+					}
 				}
+
+
 			}
 		}
 		Direction chosenDirection = allDirections[(int)(randall.nextDouble()*8)];
