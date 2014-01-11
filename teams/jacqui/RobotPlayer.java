@@ -1,3 +1,5 @@
+//Cast senseCowGrowth at the beginning of the game to create map; voids will be the only spots with no cows
+
 package jacqui;
 
 import java.util.ArrayList;
@@ -100,12 +102,25 @@ public class RobotPlayer{
 
 			if(path.size()==0){
 				MapLocation goal = getRandomLocation();
-				MapLocation PastrLoc[] = rc.sensePastrLocations(rc.getTeam().opponent()); // add
-				if(PastrLoc.length == 0 ){
+				MapLocation pastrloc[] = rc.sensePastrLocations(rc.getTeam().opponent()); // add
+				if(pastrloc.length == 0 ){
 					//double Field[][] rc.senseCowGrowth();
-					rc.construct(RobotType.PASTR);
-				}
-				path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide((PastrLoc[0]),bigBoxSize), 100000);
+							Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, 10);
+							boolean isPASTR = false;
+							for (Robot r: nearbyRobots){
+								RobotInfo rInfo;
+								rInfo = rc.senseRobotInfo(r);
+								if(rInfo.type == RobotType.PASTR){
+									isPASTR = true;
+									break;
+								}	
+							}
+							if (!isPASTR){
+									rc.construct(RobotType.PASTR);
+							}
+						}
+				
+				path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide((pastrloc[0]),bigBoxSize), 100000);
 			}
 			//follow breadthFirst path
 			Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
