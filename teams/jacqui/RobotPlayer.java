@@ -3,7 +3,11 @@ package jacqui;
 import java.util.ArrayList;
 import java.util.Random;
 
+import jacqui.BasicPathing;
+import jacqui.BreadthFirst;
+import jacqui.VectorFunctions;
 import battlecode.common.*;
+//Direction towardEnemy = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
 
 public class RobotPlayer{
 	
@@ -27,7 +31,8 @@ public class RobotPlayer{
 			//VectorFunctions.printPath(path,bigBoxSize);
 		}
 		
-		
+		//								rc.construct(RobotType.PASTR);
+
 		
 		//generate a coarsened map of the world
 		//TODO only HQ should do this. The others should download it.
@@ -95,7 +100,12 @@ public class RobotPlayer{
 
 			if(path.size()==0){
 				MapLocation goal = getRandomLocation();
-				path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(rc.senseEnemyHQLocation(),bigBoxSize), 100000);
+				MapLocation PastrLoc[] = rc.sensePastrLocations(rc.getTeam().opponent()); // add
+				if(PastrLoc.length == 0 ){
+					//double Field[][] rc.senseCowGrowth();
+					rc.construct(RobotType.PASTR);
+				}
+				path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide((PastrLoc[0]),bigBoxSize), 100000);
 			}
 			//follow breadthFirst path
 			Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
