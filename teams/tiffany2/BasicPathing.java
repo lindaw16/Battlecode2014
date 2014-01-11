@@ -2,7 +2,7 @@ package tiffany2;
 
 import java.util.ArrayList;
 
-import coarsenserPlayer.RobotPlayer;
+import tiffany2.RobotPlayer;
 
 import battlecode.common.*;
 

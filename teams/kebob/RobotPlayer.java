@@ -73,8 +73,8 @@ public class RobotPlayer
 			if (!isPASTR){
 				if (Math.random() < 0.01 && rc.isActive())
 				{
-					System.out.println("kebob is building pasture ");
-					System.out.println(totalPASTRs);
+					//System.out.println("kebob is building pasture ");
+					//System.out.println(totalPASTRs);
 					rc.construct(RobotType.PASTR);
 				}
 			}
