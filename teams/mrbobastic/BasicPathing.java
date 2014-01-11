@@ -1,8 +1,8 @@
-package bobatea;
+package mrbobastic;
 
 import java.util.ArrayList;
 
-import bobatea.RobotPlayer;
+import mrbobastic.RobotPlayer;
 
 import battlecode.common.*;
 

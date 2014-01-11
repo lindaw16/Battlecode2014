@@ -1,11 +1,17 @@
 package bobatea;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
-import coarsenserPlayer.BreadthFirst;
-import coarsenserPlayer.VectorFunctions;
-import battlecode.common.*;
+import battlecode.common.Direction;
+import battlecode.common.GameActionException;
+import battlecode.common.GameConstants;
+import battlecode.common.MapLocation;
+import battlecode.common.Robot;
+import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
+import battlecode.common.RobotType;
 
 public class RobotPlayer{
 	
@@ -18,7 +24,8 @@ public class RobotPlayer{
 	public static int mapHeight;
 	public static int mapWidth;
 	public static int distPASTR = (mapHeight + mapWidth) / 2 / 20 + 3;;
-	public static int numPASTR = 7;
+	public static int numPASTR = 5;
+	public static int selfDestructRad = 2;
 	
 	public static void run(RobotController rcIn) throws GameActionException{
 		rc=rcIn;
@@ -70,22 +77,23 @@ public class RobotPlayer{
 	private static void runSoldier() throws GameActionException {
 		
 		Robot[] teamRobots = rc.senseNearbyGameObjects(Robot.class, 10000, rc.getTeam());
-		MapLocation[] enemyPASTRs = rc.sensePastrLocations(rc.getTeam().opponent());
+		Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class,10000,rc.getTeam().opponent());
+		//MapLocation[] enemyPASTRs = rc.sensePastrLocations(rc.getTeam().opponent());
 		
 		//first see if there is are enemy PASTRs
+//		if (enemyPASTRs.length > 0) //there are enemy PASTRs to plunder!
+//		{
+//			MapLocation closestEnemyPASTRloc = VectorFunctions.findClosest(enemyPASTRs, rc.getLocation());
+//			path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(closestEnemyPASTRloc,bigBoxSize), 100000);
+//			while (rc.getLocation().distanceSquaredTo(closestEnemyPASTRloc) > 2)
+//			{ //move closer to the pastrue
+//				Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
+//				rc.move(bdir);
+//			}
+//			rc.selfDestruct();
+//			System.out.println("robot used self destruct!!!!!");
+//		} else{
 		
-		if (enemyPASTRs.length > 0) //there are enemy PASTRs to plunder!
-		{
-			MapLocation closestEnemyPASTRloc = VectorFunctions.findClosest(enemyPASTRs, rc.getLocation());
-			path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(closestEnemyPASTRloc,bigBoxSize), 100000);
-			while (rc.getLocation().distanceSquaredTo(closestEnemyPASTRloc) > 2)
-			{ //move closer to the pastrue
-				Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
-				rc.move(bdir);
-			}
-			rc.selfDestruct();
-			System.out.println("robot used self destruct!!!!!");
-		} else{
 			//first build numPASTR of PASTRs
 			int totalPASTRs = 0;
 			for (Robot rTeam: teamRobots){
@@ -95,7 +103,7 @@ public class RobotPlayer{
 				}
 			}
 			
-			if (totalPASTRs < numPASTR)
+			if (totalPASTRs < numPASTR) //make more pastures!
 			{
 				Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, distPASTR);
 				boolean isPASTR = false;
@@ -117,46 +125,50 @@ public class RobotPlayer{
 						rc.construct(RobotType.PASTR);
 					}
 				}
-			}
-			//ENOUGH PASTRS
-			
-			//follow orders from HQ
-			//Direction towardEnemy = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
-			//BasicPathing.tryToMove(towardEnemy, true, rc, directionalLooks, allDirections);//was Direction.SOUTH_EAST
-	
-			Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class,10000,rc.getTeam().opponent());
-			if(enemyRobots.length>0){//if there are enemies
-				rc.setIndicatorString(0, "There are enemies");
-				MapLocation[] robotLocations = new MapLocation[enemyRobots.length];
-				for(int i=0;i<enemyRobots.length;i++){
-					Robot anEnemy = enemyRobots[i];
-					RobotInfo anEnemyInfo = rc.senseRobotInfo(anEnemy);
-					robotLocations[i] = anEnemyInfo.location;
-				}
-				MapLocation closestEnemyLoc = VectorFunctions.findClosest(robotLocations, rc.getLocation());
-				if(closestEnemyLoc.distanceSquaredTo(rc.getLocation())<rc.getType().attackRadiusMaxSquared){
-					rc.setIndicatorString(1, "trying to shoot");
-					if(rc.isActive()){
-						rc.attackSquare(closestEnemyLoc);
+			} else { //ENOUGH PASTRS
+				//first check if there are enemies
+				if(enemyRobots.length>0){
+					//make a dictionary of all the enemyRobots' locations
+					//MapLocation[] robotLocations = new MapLocation[enemyRobots.length];
+					HashMap <MapLocation, RobotType> enemyLocInfo = new HashMap<MapLocation, RobotType>();
+					
+					for(int i=0; i<enemyRobots.length; i++)
+					{
+						Robot anEnemy = enemyRobots[i];
+						RobotInfo anEnemyInfo = rc.senseRobotInfo(anEnemy);
+						enemyLocInfo.put(anEnemyInfo.location, anEnemyInfo.type);
 					}
-				}else{
-					rc.setIndicatorString(1, "trying to go closer");
-					Direction towardClosest = rc.getLocation().directionTo(closestEnemyLoc);
-					simpleMove(towardClosest);
-				}
-			}else{
-	
-				if(path.size()==0){
-					MapLocation goal = getRandomLocation();
-					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(rc.senseEnemyHQLocation(),bigBoxSize), 100000);
-				}
-				//follow breadthFirst path
-				Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
-				BasicPathing.tryToMove(bdir, true, rc, directionalLooks, allDirections);
-			 }
-			//Direction towardEnemy = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
-			//simpleMove(towardEnemy);
-		}
+					//MapLocation closestEnemyLoc = VectorFunctions.findClosest(robotLocations, rc.getLocation());
+					MapLocation closestEnemyLoc = VectorFunctions.findClosest(enemyLocInfo.keySet(), rc.getLocation());
+					
+					//check if the closestEnemyLoc is close enough to do damage
+					boolean closeEnemyPASTR = closestEnemyLoc.distanceSquaredTo(rc.getLocation()) < selfDestructRad;
+					boolean closeEnemySoldier = closestEnemyLoc.distanceSquaredTo(rc.getLocation()) < rc.getType().attackRadiusMaxSquared;
+					
+					
+					if (closeEnemyPASTR || closeEnemySoldier) //attack!!
+					{
+						if (closeEnemySoldier) {rc.attackSquare(closestEnemyLoc);}
+						else {rc.selfDestruct();} //closeEnemyPASTR
+					} else //move closer
+					  {
+						Direction dirClosest = rc.getLocation().directionTo(closestEnemyLoc);
+						simpleMove(dirClosest);			
+					  }
+				} else //there are no enemies
+				  {
+					if(path.size()==0){
+						MapLocation goal = getRandomLocation();
+						path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(rc.senseEnemyHQLocation(),bigBoxSize), 100000);
+					}
+					//follow breadthFirst path
+					Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
+					BasicPathing.tryToMove(bdir, true, rc, directionalLooks, allDirections);
+				 }
+				//Direction towardEnemy = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
+				//simpleMove(towardEnemy);
+			//}
+		  }
 	}
 	
 	private static MapLocation getRandomLocation() {
