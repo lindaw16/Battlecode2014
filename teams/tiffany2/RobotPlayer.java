@@ -1,6 +1,7 @@
 package tiffany2;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import battlecode.common.*;
@@ -18,19 +19,63 @@ public class RobotPlayer{
 	
 	static boolean herder = false;
 	static boolean attacker = false;
+	static boolean buildOrNot = false;
 	static MapLocation pastrGoal = null;
 	static MapLocation enemyPastures[];
 	static MapLocation myPastures[];
 	
+	static final int bigMapHerder = 14;
+	static final int bigMapBuilder = 10;
+	
+	static final int medMapHerder = 12;
+	static final int medMapBuilder = 8;
+	
+	static final int smallMapHerder = 10;
+	static final int smallMapBuilder = 6;
+	
+	static int mapHerderConst = 0;
+	static int mapBuilderConst = 0;
+	
+	
+
+	public static int mapHeight;
+	public static int mapWidth;
+	
 	public static void run(RobotController rcIn) throws GameActionException{
 		rc=rcIn;
 		randall.setSeed(rc.getRobot().getID());
-		countNumRobots = rc.senseRobotCount();
-		if(countNumRobots > 10){ //if there are more than 10 robots on the field, build pastrs
-			attacker = true;
+
+		mapHeight = rc.getMapHeight();
+		mapWidth = rc.getMapWidth();
+		System.out.println(mapHeight+" "+mapWidth+" "+((mapHeight + mapWidth)/2));
+		
+		
+		if((mapHeight + mapWidth) / 2 < 40){
+			mapHerderConst = smallMapHerder;
+			mapBuilderConst = smallMapBuilder;
 		}
-		else if(countNumRobots > 5){
+		else if((mapHeight + mapWidth) / 2 < 60){
+			mapHerderConst = medMapHerder;
+			mapBuilderConst = medMapBuilder;
+		}
+		else{
+			mapHerderConst = bigMapHerder;
+			mapBuilderConst = bigMapBuilder;
+		}
+			
+		System.out.println(mapHerderConst+ " "+mapBuilderConst);	
+		countNumRobots = rc.senseRobotCount();
+		if(countNumRobots > mapHerderConst){ //if there are more than 10 robots on the field, build pastrs
 			herder = true;
+			System.out.println("herder");
+		}
+		else if(countNumRobots > mapBuilderConst){
+			buildOrNot = true;
+			System.out.println("builder");
+		}
+		else{
+			attacker = true;
+			System.out.println("attacker");
 		}
 		
 		if(rc.getType()==RobotType.HQ){
@@ -88,6 +133,7 @@ public class RobotPlayer{
 		
 		Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class,10000,rc.getTeam().opponent());
 		
+		
 		if(rc.getHealth()<10){
 			System.out.println("self-destruct!");
 			rc.selfDestruct();
@@ -115,28 +161,39 @@ public class RobotPlayer{
 		}else{
 			
 			if(attacker) {
-
-				if(pastrGoal == null) {
+				boolean alreadySense = false;
+				if(pastrGoal != null && distanceTo(rc.getLocation(), pastrGoal) <= 10){
 					enemyPastures = rc.sensePastrLocations(rc.getTeam().opponent());
+					if(!Arrays.asList(enemyPastures).contains(pastrGoal)){
+						pastrGoal = null;
+						alreadySense = true;
+					}
+				}
+				if(pastrGoal == null) {
+					if(!alreadySense){
+						enemyPastures = rc.sensePastrLocations(rc.getTeam().opponent());
+					}
 					pastrGoal = findClosest(enemyPastures, rc.getLocation());
-					System.out.println("sensing");
 				}
 				if(path.size() == 0){
 					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
 				}
+				buildOrNot = false;
 
 			}
 			else if(herder){
 				if(pastrGoal == null) {
 					myPastures = rc.sensePastrLocations(rc.getTeam());
+					if(myPastures.length < 3){
+						buildOrNot = true;
+					}
 					pastrGoal = findClosest(myPastures, rc.getLocation());
-					System.out.println("sensing my pasture");
 				}
 				if(path.size() == 0){
 					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
 				}
 			}
-			else //no enemies, build a pasture
+			if(buildOrNot) //no enemies, build a pasture
 			  {
 				Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, 10);
 				boolean isPASTR = false;
@@ -183,6 +240,19 @@ public class RobotPlayer{
 	}
 	
 	
+//	private static Robot[] filter(Robot list[], RobotType type){
+//		ArrayList<Robot> robots = new ArrayList<Robot>();
+//		for(Robot r: list){
+//			if(!rc.senseRobotInfo(r).type.equals(type)){
+//				robots.add(r);
+//			}
+//		}
+//		return (Robot[])robots.toArray();
+//	}
+//	
+	
+	
+	
 	private static MapLocation findClosest(MapLocation list[], MapLocation location) {
 		int closeDist = Integer.MAX_VALUE;
 		MapLocation closeLoc = null;
@@ -195,6 +265,10 @@ public class RobotPlayer{
 		}
 		return closeLoc;
 		
+	}
+	
+	private static int distanceTo(MapLocation l1, MapLocation l2){
+		return (int) (Math.pow(l1.x - l2.x, 2) + Math.pow(l1.y - l2.y, 2));
 	}
 	
 }
