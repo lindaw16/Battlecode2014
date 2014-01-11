@@ -16,16 +16,21 @@ public class RobotPlayer{
 	
 	static int countNumRobots = 0;
 	
+	static boolean herder = false;
 	static boolean attacker = false;
 	static MapLocation pastrGoal = null;
 	static MapLocation enemyPastures[];
+	static MapLocation myPastures[];
 	
 	public static void run(RobotController rcIn) throws GameActionException{
 		rc=rcIn;
 		randall.setSeed(rc.getRobot().getID());
 		countNumRobots = rc.senseRobotCount();
-		if(countNumRobots >10){
+		if(countNumRobots > 10){ //if there are more than 10 robots on the field, build pastrs
 			attacker = true;
+		}
+		else if(countNumRobots > 5){
+			herder = true;
 		}
 		
 		if(rc.getType()==RobotType.HQ){
@@ -82,6 +87,12 @@ public class RobotPlayer{
 		//BasicPathing.tryToMove(towardEnemy, true, rc, directionalLooks, allDirections);//was Direction.SOUTH_EAST
 		
 		Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class,10000,rc.getTeam().opponent());
+		
+		if(rc.getHealth()<10){
+			System.out.println("self-destruct!");
+			rc.selfDestruct();
+		}
+		
 		if(enemyRobots.length>0){//if there are enemies
 			rc.setIndicatorString(0, "There are enemies");
 			MapLocation[] robotLocations = new MapLocation[enemyRobots.length];
@@ -103,20 +114,27 @@ public class RobotPlayer{
 			}
 		}else{
 			
-			if(attacker == true) {
+			if(attacker) {
 
 				if(pastrGoal == null) {
 					enemyPastures = rc.sensePastrLocations(rc.getTeam().opponent());
 					pastrGoal = findClosest(enemyPastures, rc.getLocation());
 					System.out.println("sensing");
 				}
-				//			if(path.size()==0){
-				//				MapLocation goal = getRandomLocation();
-				//			}
 				if(path.size() == 0){
 					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
 				}
 
+			}
+			else if(herder){
+				if(pastrGoal == null) {
+					myPastures = rc.sensePastrLocations(rc.getTeam());
+					pastrGoal = findClosest(myPastures, rc.getLocation());
+					System.out.println("sensing my pasture");
+				}
+				if(path.size() == 0){
+					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
+				}
 			}
 			else //no enemies, build a pasture
 			  {
@@ -133,7 +151,7 @@ public class RobotPlayer{
 				if (!isPASTR){
 					if (Math.random() < 0.01 && rc.isActive())
 					{
-						//System.out.println("bobette is building pasture!");
+						//System.out.println("tiffany2 is building pasture!");
 						rc.construct(RobotType.PASTR);
 					}
 				}
