@@ -1,3 +1,4 @@
+/*
 package bub;
 
 import java.util.Random;
@@ -95,6 +96,7 @@ public class RobotPlayer
 			robC++;
 		}
 	}
+<<<<<<< HEAD
 	private static void simpleMove()throws GameActionException{
 		//for now Random
 		Direction spawnDir = allDirections[(int)(Math.random()*8)];
@@ -104,3 +106,7 @@ public class RobotPlayer
 		
 	}
 }
+=======
+}
+*/
+>>>>>>> ee0f487bb93eda77190d83be5cad44526b8f95e2
