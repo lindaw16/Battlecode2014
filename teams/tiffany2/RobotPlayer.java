@@ -16,7 +16,7 @@ public class RobotPlayer{
 	
 	static int countNumRobots = 0;
 	
-	static boolean attacker = true;
+	static boolean attacker = false;
 	static MapLocation pastrGoal = null;
 	static MapLocation enemyPastures[];
 	
@@ -117,6 +117,26 @@ public class RobotPlayer{
 					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
 				}
 
+			}
+			else //no enemies, build a pasture
+			  {
+				Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, 10);
+				boolean isPASTR = false;
+				for (Robot r: nearbyRobots){
+					RobotInfo rInfo;
+					rInfo = rc.senseRobotInfo(r);
+					if(rInfo.type == RobotType.PASTR){
+						isPASTR = true;
+						break;
+					}	
+				}
+				if (!isPASTR){
+					if (Math.random() < 0.01 && rc.isActive())
+					{
+						//System.out.println("bobette is building pasture!");
+						rc.construct(RobotType.PASTR);
+					}
+				}
 			}
 
 
