@@ -1,8 +1,8 @@
-package tiffany2;
+package jacqui;
 
 import java.util.ArrayList;
 
-import tiffany2.RobotPlayer;
+import jacqui.RobotPlayer;
 
 import battlecode.common.*;
 

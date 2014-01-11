@@ -1,5 +1,4 @@
-/*
-package tiffany2;
+package jacqui;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -96,8 +95,7 @@ public class RobotPlayer{
 
 			if(path.size()==0){
 				MapLocation goal = getRandomLocation();
-				
-				path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(,bigBoxSize), 100000);
+				path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(rc.senseEnemyHQLocation(),bigBoxSize), 100000);
 			}
 			//follow breadthFirst path
 			Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
@@ -124,4 +122,3 @@ public class RobotPlayer{
 	}
 	
 }
-*/
