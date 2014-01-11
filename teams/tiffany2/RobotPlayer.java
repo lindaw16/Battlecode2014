@@ -14,9 +14,19 @@ public class RobotPlayer{
 	static ArrayList<MapLocation> path;
 	static int bigBoxSize = 5;
 	
+	static int countNumRobots = 0;
+	
+	static boolean attacker = true;
+	static MapLocation pastrGoal = null;
+	static MapLocation enemyPastures[];
+	
 	public static void run(RobotController rcIn) throws GameActionException{
 		rc=rcIn;
 		randall.setSeed(rc.getRobot().getID());
+		countNumRobots = rc.senseRobotCount();
+		if(countNumRobots >10){
+			attacker = true;
+		}
 		
 		if(rc.getType()==RobotType.HQ){
 			tryToSpawn();
@@ -70,7 +80,7 @@ public class RobotPlayer{
 		//follow orders from HQ
 		//Direction towardEnemy = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
 		//BasicPathing.tryToMove(towardEnemy, true, rc, directionalLooks, allDirections);//was Direction.SOUTH_EAST
-
+		
 		Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class,10000,rc.getTeam().opponent());
 		if(enemyRobots.length>0){//if there are enemies
 			rc.setIndicatorString(0, "There are enemies");
@@ -92,12 +102,24 @@ public class RobotPlayer{
 				simpleMove(towardClosest);
 			}
 		}else{
+			
+			if(attacker == true) {
 
-			if(path.size()==0){
-				MapLocation goal = getRandomLocation();
-				
-				path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(,bigBoxSize), 100000);
+				if(pastrGoal == null) {
+					enemyPastures = rc.sensePastrLocations(rc.getTeam().opponent());
+					pastrGoal = findClosest(enemyPastures, rc.getLocation());
+					System.out.println("sensing");
+				}
+				//			if(path.size()==0){
+				//				MapLocation goal = getRandomLocation();
+				//			}
+				if(path.size() == 0){
+					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
+				}
+
 			}
+
+
 			//follow breadthFirst path
 			Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
 			BasicPathing.tryToMove(bdir, true, rc, directionalLooks, allDirections);
@@ -120,6 +142,21 @@ public class RobotPlayer{
 				break;
 			}
 		}
+	}
+	
+	
+	private static MapLocation findClosest(MapLocation list[], MapLocation location) {
+		int closeDist = Integer.MAX_VALUE;
+		MapLocation closeLoc = null;
+		for(MapLocation l: list){
+			int dist = (int) (Math.pow(l.x - location.x, 2) + Math.pow(l.y - location.y, 2));
+			if(dist < closeDist){
+				closeDist = dist;
+				closeLoc = l;
+			}
+		}
+		return closeLoc;
+		
 	}
 	
 }
