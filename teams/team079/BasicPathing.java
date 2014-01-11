@@ -2,7 +2,7 @@ package team079;
 
 import java.util.ArrayList;
 
-import tiffany2.RobotPlayer;
+import team079.RobotPlayer;
 
 import battlecode.common.*;
 
