@@ -29,6 +29,7 @@ public class RobotPlayer{
 	static boolean noiseTower = false;
 	static boolean herder = false;
 	static boolean attacker = false;
+	
 	static boolean buildOrNot = false;
 	static MapLocation pastrGoal = null;
 	static MapLocation enemyPastures[];
@@ -49,7 +50,7 @@ public class RobotPlayer{
 	
 	static MapLocation pointsNoisetower[] = {};
 	static int towerCount = 0;
-	static int noiseConst = 30;
+	static int noiseConst = 24;
 	
 	public static int mapHeight;
 	public static int mapWidth;
@@ -60,7 +61,7 @@ public class RobotPlayer{
 
 		mapHeight = rc.getMapHeight();
 		mapWidth = rc.getMapWidth();
-		
+		System.out.println("creating robot "+rc.getType());
 		
 		if((mapHeight + mapWidth) / 2 < 40){
 			mapHerderConst = smallMapHerder;
@@ -88,12 +89,13 @@ public class RobotPlayer{
 			buildOrNot = true;
 			System.out.println("builder");
 		}
-		else if(countNumRobots == 1){
+		else if(countNumRobots == 2){
 			pastrHQ = true;
 			System.out.println("pastrHQ");
 		}
-		else if(countNumRobots == 2){
+		else if(countNumRobots == 1){
 			noiseTower = true;
+			System.out.println("noisetower");
 			
 		}
 		else{
@@ -102,13 +104,13 @@ public class RobotPlayer{
 		}
 		
 		if(rc.getType()==RobotType.HQ){
-			tryToSpawn();
+			
 		}
 		else if(rc.getType()==RobotType.NOISETOWER){
 			recalculateFirst();
 			System.out.println("noiseTower");
 		}
-		else{
+		else if(rc.getType()==RobotType.SOLDIER){
 			BreadthFirst.init(rc, bigBoxSize);
 			MapLocation goal = getRandomLocation();
 			path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(goal,bigBoxSize), 100000);
@@ -124,18 +126,20 @@ public class RobotPlayer{
 //		MapAssessment.printCoarseMap();
 
 		while(true){
-			try{
-				if(rc.getType()==RobotType.HQ){
-					runHQ();
-				}else if(rc.getType()==RobotType.SOLDIER){
-					runSoldier();
+			if(rc.isActive()){
+				try{
+					if(rc.getType()==RobotType.HQ){
+						runHQ();
+					}else if(rc.getType()==RobotType.SOLDIER){
+						runSoldier();
+					}
+					else if(rc.getType()==RobotType.NOISETOWER){
+						runNoisetower();
+					}
+				}catch (Exception e){
+					System.out.println(e);
+					
 				}
-				else if(rc.getType()==RobotType.NOISETOWER){
-					runNoisetower();
-				}
-			}catch (Exception e){
-				//System.out.println(e);
-				
 			}
 			rc.yield();
 		}
@@ -143,11 +147,7 @@ public class RobotPlayer{
 
 	private static void runHQ() throws GameActionException {
 		//tell robots where to go
-		tryToSpawn();
-	}
-
-	public static void tryToSpawn() throws GameActionException {
-		if(rc.isActive()&&rc.senseRobotCount()<GameConstants.MAX_ROBOTS){
+		if(rc.senseRobotCount()<GameConstants.MAX_ROBOTS){
 			for(int i=0;i<8;i++){
 				Direction trialDir = allDirections[i];
 				if(rc.canMove(trialDir)){
@@ -157,28 +157,19 @@ public class RobotPlayer{
 			}
 		}
 	}
-	
+
 	private static void runNoisetower() throws GameActionException {
-		if(towerCount%8 == 0){
+		towerCount %= 8;
+		if(towerCount == 0){
 			noiseConst -= 1;
 			recalculateFirst();
 		}
 		
 		towerCount++;
 		if(noiseConst <= 5){
-			noiseConst = 30;
+			noiseConst = 24;
 		}
-		List<MapLocation> tempList = new ArrayList(Arrays.asList(pointsNoisetower));
-		
-		MapLocation first = tempList.remove(0);
-		
-//		//System.out.println("noise tower shoot "+first.x+" "+first.y);
-		tempList.add(first);
-		
-		pointsNoisetower = tempList.toArray(new MapLocation[0]);
-		System.out.println("shooting noise tower "+tempList.size()+" "+first.x+" "+first.y);
-		System.out.println("noise tower: "+ rc.getLocation().x+" "+rc.getLocation().y);
-		rc.attackSquare(first);
+		rc.attackSquare(pointsNoisetower[towerCount]);
 	}
 	
 	private static void runSoldier() throws GameActionException {
