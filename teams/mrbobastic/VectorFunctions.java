@@ -1,4 +1,4 @@
-package bobatea;
+package mrbobastic;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -7,11 +7,11 @@ import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 
 public class VectorFunctions {
-	public static MapLocation findClosest(Set<MapLocation> set, MapLocation point){
+	public static MapLocation findClosest(MapLocation[] manyLocs, MapLocation point){
 		int closestDist = 10000000;
 		int challengerDist = closestDist;
 		MapLocation closestLoc = null;
-		for(MapLocation m:set){
+		for(MapLocation m:manyLocs){
 			challengerDist = point.distanceSquaredTo(m);
 			if(challengerDist<closestDist){
 				closestDist = challengerDist;

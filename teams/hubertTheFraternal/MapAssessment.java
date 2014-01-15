@@ -1,4 +1,4 @@
-package mrbobastic;
+package hubertTheFraternal;
 
 import battlecode.common.*;
 
