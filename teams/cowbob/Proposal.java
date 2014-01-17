@@ -1,4 +1,4 @@
-package mrbobastic;
+package cowbob;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package mrbobastic;
+package cowbob;
 
 import java.util.ArrayList;
 
@@ -144,5 +144,9 @@ public class BreadthFirst {
 	//for(int i=0;i<5;i++)
 	//because comparison with zero is cheaper by 1 bc. But only if the zero appears second!
 	
+	public static MapLocation trimGoal(MapLocation uncheckedGoal){
+		//make sure the goal is inside bounds
+		return new MapLocation(Math.min(uncheckedGoal.x, width-1),Math.min(uncheckedGoal.y, height-1));
+	}
 	
 }
