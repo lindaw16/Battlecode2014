@@ -96,11 +96,51 @@ public class RobotPlayer{
 		// want to call this once at the beginning of the game
 		if (noise_count >= 1 && pastr_count >=1){
 			cowGrowth = rc.senseCowGrowth();
-			//Cumulative sum matrix calculation 
-		}
+		//cumlative sum matrix
+			double x = 0;
+			double y = 0;
+			for (int i=0; i < mapHeight +1 ; i++){
+				for (int j=0; j < mapHeight + 1; i++){
+					if (j>0){
+					x += cowGrowth[i][j-1];
+					}
+					else{
+						x = 0;}
+					if (i > 0){
+						y += cowGrowth[i-1][j]; }
+					else {
+						y = 0;
+					}
+					cowGrowth[i][j] = cowGrowth[i][j] + x + y; //cowGrowth is now a cum sum matrix
+					}
+				}
+			}
+			
+			int a = 0;
+			int b = 0;
+			int m = 24; //noisetower radius of attack
+			double max_sum = 0;
+			for (int i=0; i < mapHeight +1 -m ; i++){
+				for (int j=0; j < mapHeight + 1 -m; i++){
+				double best_submatrix_sum = cowGrowth[i+m][j+m] - cowGrowth[i][j+m] - cowGrowth[i+m][j] + cowGrowth[i][j];
+					if (best_submatrix_sum > max_sum){
+						max_sum = best_submatrix_sum;
+						a = i;
+						b = j;
+					}
+			//signal for new noisetower/pastr to be built at/near i-m/2, j-m/2 
+					
+				
+				}
+			}
 		
+	
+			
+			
+			//Cumulative sum matrix calculation 
 		
 		//cowGrowth 
+		
 		
 		
 		
