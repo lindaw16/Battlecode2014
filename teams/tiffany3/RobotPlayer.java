@@ -29,9 +29,8 @@ public class RobotPlayer{
 	static boolean noiseTower = false;
 	static boolean herder = false;
 	static boolean attacker = false;
-	static boolean defender = false;
-	
 	static boolean buildOrNot = false;
+	
 	static MapLocation pastrGoal = null;
 	static MapLocation enemyPastures[];
 	static MapLocation myPastures[];
@@ -58,6 +57,15 @@ public class RobotPlayer{
 	public static int mapHeight;
 	public static int mapWidth;
 	
+	/*
+	 * Message passing codes:
+	 * 1 - attack this PASTR
+	 * 1 + xCoord + 0 + yCoord
+	 * 
+	 * 
+	 */
+	
+	
 	public static void run(RobotController rcIn) throws GameActionException{
 		rc=rcIn;
 		randall.setSeed(rc.getRobot().getID());
@@ -80,8 +88,8 @@ public class RobotPlayer{
 			mapBuilderConst = bigMapBuilder;
 		}
 		
-		mapHerderConst += 4;
-		mapBuilderConst += 4;
+		mapHerderConst += 2;
+		mapBuilderConst += 2;
 		
 		countNumRobots = rc.senseRobotCount();
 		
@@ -101,10 +109,6 @@ public class RobotPlayer{
 			noiseTower = true;
 			System.out.println("noisetower");
 			
-		}
-		else if(countNumRobots < 5){
-			defender = true;
-			System.out.println("defender");
 		}
 		else{
 			attacker = true;

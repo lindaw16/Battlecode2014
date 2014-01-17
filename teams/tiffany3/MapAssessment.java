@@ -5,10 +5,10 @@ import battlecode.common.*;
 public class MapAssessment{
 	
 	public static int[][] coarseMap;
-	public static int bigBoxSize;
+	public static int bigBoxSize=1;
 	
 	public static void assessMap(int bigBoxSizeIn,RobotController rc){
-		bigBoxSize=bigBoxSizeIn;
+	//	bigBoxSize=bigBoxSizeIn;
 		int coarseWidth = rc.getMapWidth()/bigBoxSize;
 		int coarseHeight = rc.getMapHeight()/bigBoxSize;
 		coarseMap = new int[coarseWidth][coarseHeight];

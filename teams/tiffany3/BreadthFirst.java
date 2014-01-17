@@ -16,7 +16,7 @@ public class BreadthFirst {
 	public static int[][] mapData;
 	public static ArrayList<MapLocation> path = new ArrayList<MapLocation>();
 	public static Direction[] dirs = {Direction.NORTH,Direction.NORTH_EAST,Direction.EAST,Direction.SOUTH_EAST,Direction.SOUTH,Direction.SOUTH_WEST,Direction.WEST,Direction.NORTH_WEST};
-	//public static Direction[] dirs = {Direction.NORTH,Direction.EAST,Direction.SOUTH,Direction.WEST};
+
 	public static boolean shortestPathLocated;
 	public static RobotController rci;
 	
