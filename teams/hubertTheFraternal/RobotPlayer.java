@@ -17,6 +17,7 @@ public class RobotPlayer{
 	static Random randall = new Random();
 	public static int directionalLooks[] = new int[]{0,1,-1,2,-2,3,-3,4};
 	static ArrayList<MapLocation> path = new ArrayList<MapLocation>();
+
 	static int bigBoxSize = 5;
 	static MapLocation enemyHQ;
 	

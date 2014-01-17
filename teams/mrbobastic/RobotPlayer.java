@@ -14,7 +14,9 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 
+
 public class RobotPlayer{
+	
 	
 	static RobotController rc;
 	static Direction allDirections[] = Direction.values();
@@ -54,7 +56,13 @@ public class RobotPlayer{
 	
 	public static int mapHeight;
 	public static int mapWidth;
-	
+
+//EUNICE AND LINDA TRYING TO COMMUNICATE IN JAVA
+	static BandData band1;
+	static BandData band2;
+//	static int old1;
+//	static int old2;
+//	
 	public static void run(RobotController rcIn) throws GameActionException{
 		rc=rcIn;
 		randall.setSeed(rc.getRobot().getID());
@@ -104,7 +112,12 @@ public class RobotPlayer{
 		}
 		
 		if(rc.getType()==RobotType.HQ){
-			
+			//band 1 stays in our hq
+			band1 = new BandData(1, 0, rc.getLocation().x, rc.getLocation().y);
+			//rc.broadcast(1, band1.concatenate());
+			//send band 2 toward the enemy hq
+			band2 = new BandData(2, 0, rc.senseEnemyHQLocation().x, rc.senseEnemyHQLocation().y);
+			System.out.println("HQ YO");
 		}
 		else if(rc.getType()==RobotType.NOISETOWER){
 			recalculateFirst();
@@ -148,6 +161,14 @@ public class RobotPlayer{
 
 	private static void runHQ() throws GameActionException {
 		//tell robots where to go
+		//DO THINGS HERE
+//		int old1 = band1.concatenate();
+//		int old2 = band2.concatenate();
+//		
+		System.out.println("I AM BROADCASTINGGGGGGGGG");
+		rc.broadcast(1, band1.concatenate());
+		rc.broadcast(2, band2.concatenate());
+		
 		if(rc.senseRobotCount()<GameConstants.MAX_ROBOTS){
 			for(int i=0;i<8;i++){
 				Direction trialDir = allDirections[i];
@@ -207,71 +228,97 @@ public class RobotPlayer{
 					rc.attackSquare(closestEnemyLoc);
 				}
 			}else{
+//Read Broadcast	
+				System.out.println("reading broadcast");
+				int message = rc.readBroadcast(1);
+				if (message/10000 < 5)
+				{
+					//join squad
+					band1.size ++;
+					System.out.println("band 1 size is " + band1.size);
+					int[] m = decode(message);
+					Direction loc = rc.getLocation().directionTo(new MapLocation(m[2], m[3]));
+					simpleMove(loc);	
+				} else //join squad 2
+				{
+					message = rc.readBroadcast(2);
+					band2.size ++;
+					System.out.println("band 2 size is " + band2.size);
+					int[] m = decode(message);
+					Direction loc = rc.getLocation().directionTo(new MapLocation(m[2], m[3]));
+					simpleMove(loc);
+				}
+				
 				rc.setIndicatorString(1, "trying to go closer");
 				Direction towardClosest = rc.getLocation().directionTo(closestEnemyLoc);
 				simpleMove(towardClosest);
 			}
-		}else{
-			
-			if(attacker) {
-				boolean alreadySense = false;
-				if(pastrGoal != null && distanceTo(rc.getLocation(), pastrGoal) <= 10){
-					enemyPastures = rc.sensePastrLocations(rc.getTeam().opponent());
-					if(!Arrays.asList(enemyPastures).contains(pastrGoal)){
-						pastrGoal = null;
-						alreadySense = true;
-					}
-				}
-				if(pastrGoal == null) {
-					if(!alreadySense){
-						enemyPastures = rc.sensePastrLocations(rc.getTeam().opponent());
-					}
-					pastrGoal = findClosest(enemyPastures, rc.getLocation());
-				}
-				if(path.size() == 0){
-					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
-				}
-				buildOrNot = false;
-
-			}
-			else if(herder){
-				if(pastrGoal == null) {
-					myPastures = rc.sensePastrLocations(rc.getTeam());
-					if(myPastures.length < 3){
-						buildOrNot = true;
-					}
-					pastrGoal = findClosest(myPastures, rc.getLocation());
-				}
-				if(path.size() == 0){
-					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
-				}
-			}
-			if(buildOrNot) //no enemies, build a pasture
-			  {
-				Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, 10);
-				boolean isPASTR = false;
-				for (Robot r: nearbyRobots){
-					RobotInfo rInfo;
-					rInfo = rc.senseRobotInfo(r);
-					if(rInfo.type == RobotType.PASTR){
-						isPASTR = true;
-						break;
-					}	
-				}
-				if (!isPASTR){
-					if (Math.random() < 0.01 && rc.isActive())
-					{
-						//System.out.println("tiffany2 is building pasture!");
-						rc.construct(RobotType.PASTR);
-					}
-				}
-			}
-
-
-			//follow breadthFirst path
-			Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
-			BasicPathing.tryToMove(bdir, true, rc, directionalLooks, allDirections);
 		}
+//		
+//		else{
+//			
+//			if(attacker) {
+//				boolean alreadySense = false;
+//				if(pastrGoal != null && distanceTo(rc.getLocation(), pastrGoal) <= 10){
+//					enemyPastures = rc.sensePastrLocations(rc.getTeam().opponent());
+//					if(!Arrays.asList(enemyPastures).contains(pastrGoal)){
+//						pastrGoal = null;
+//						alreadySense = true;
+//					}
+//				}
+//				if(pastrGoal == null) {
+//					if(!alreadySense){
+//						enemyPastures = rc.sensePastrLocations(rc.getTeam().opponent());
+//					}
+//					pastrGoal = findClosest(enemyPastures, rc.getLocation());
+//				}
+//				if(path.size() == 0){
+//					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
+//				}
+//				buildOrNot = false;
+//
+//			}
+//			else if(herder){
+//				if(pastrGoal == null) {
+//					myPastures = rc.sensePastrLocations(rc.getTeam());
+//					if(myPastures.length < 3){
+//						buildOrNot = true;
+//					}
+//					pastrGoal = findClosest(myPastures, rc.getLocation());
+//				}
+//				if(path.size() == 0){
+//					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
+//				}
+//			}
+//			if(buildOrNot) //no enemies, build a pasture
+//			  {
+//				Robot[] nearbyRobots = rc.senseNearbyGameObjects(Robot.class, 10);
+//				boolean isPASTR = false;
+//				for (Robot r: nearbyRobots){
+//					RobotInfo rInfo;
+//					rInfo = rc.senseRobotInfo(r);
+//					if(rInfo.type == RobotType.PASTR){
+//						isPASTR = true;
+//						break;
+//					}	
+//				}
+//				if (!isPASTR){
+//					if (Math.random() < 0.01 && rc.isActive())
+//					{
+//						//System.out.println("tiffany2 is building pasture!");
+//						rc.construct(RobotType.PASTR);
+//					}
+//				}
+//			}
+//
+//			//
+//			
+//			
+//
+//			//follow breadthFirst path
+//			Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
+//			BasicPathing.tryToMove(bdir, true, rc, directionalLooks, allDirections);
+//		}
 		//Direction towardEnemy = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
 		//simpleMove(towardEnemy);
 		
@@ -357,6 +404,22 @@ public class RobotPlayer{
 	
 	private static int distanceTo(MapLocation l1, MapLocation l2){
 		return (int) (Math.pow(l1.x - l2.x, 2) + Math.pow(l1.y - l2.y, 2));
+	}
+
+	
+	private static int[] decode(int message)
+	{
+		int[] m = {0, 0, 0, 0};
+		int [] conversion = {100000, 10000, 100, 1};
+		
+		for (int i = 0; i < 4; i++)
+		{
+			m[i] = message/conversion[i];
+			message -= m[i]*conversion[i];
+			//System.out.println("WE MADE IT " + i + " " + m[i]);
+		}
+		
+		return m;
 	}
 	
 }

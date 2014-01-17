@@ -26,27 +26,27 @@ public class RobotPlayer
 			  {				
 				//shooting (prioritized)
 				//array of robots, attack the opponent team
-				Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class, 10000, rc.getTeam().opponent());
-				if (enemyRobots.length> 0) //not empty
-				{
-					Robot anEnemy = enemyRobots[0];
-					//need to use RobotInfo b/c Robot doesn't have location
-					RobotInfo anEnemyInfo;
-					try {
-						anEnemyInfo = rc.senseRobotInfo(anEnemy);
-						if (anEnemyInfo.location.distanceSquaredTo(rc.getLocation()) < rc.getType().attackRadiusMaxSquared)
-						{
-							if (rc.isActive())
-							{
-								rc.attackSquare(anEnemyInfo.location);									
-							}
-						}
-					} catch (GameActionException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				} else //no enemies, build a tower
-				{
+//				Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class, 10000, rc.getTeam().opponent());
+//				if (enemyRobots.length> 0) //not empty
+//				{
+//					Robot anEnemy = enemyRobots[0];
+//					//need to use RobotInfo b/c Robot doesn't have location
+//					RobotInfo anEnemyInfo;
+//					try {
+//						anEnemyInfo = rc.senseRobotInfo(anEnemy);
+//						if (anEnemyInfo.location.distanceSquaredTo(rc.getLocation()) < rc.getType().attackRadiusMaxSquared)
+//						{
+//							if (rc.isActive())
+//							{
+//								rc.attackSquare(anEnemyInfo.location);									
+//							}
+//						}
+//					} catch (GameActionException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//				} else //no enemies, build a tower
+//				{
 					if (Math.random() < 0.01)
 					{
 						if (rc.isActive())
@@ -62,7 +62,7 @@ public class RobotPlayer
 						}
 
 					}
-				}
+//				}
 
 				//movement
 				Direction allDirections[] = Direction.values();
