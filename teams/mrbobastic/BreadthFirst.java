@@ -1,6 +1,7 @@
 package mrbobastic;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import battlecode.common.*;
 
@@ -19,6 +20,7 @@ public class BreadthFirst {
 	//public static Direction[] dirs = {Direction.NORTH,Direction.EAST,Direction.SOUTH,Direction.WEST};
 	public static boolean shortestPathLocated;
 	public static RobotController rci;
+	public static Hashtable<MapLocation,Direction[][]> storedPathingData = new Hashtable<MapLocation,Direction[][]>();
 	
 	//pathTo(myLoc,enemy,1000000);
 	
@@ -61,21 +63,41 @@ public class BreadthFirst {
 	}
 	
 	@SuppressWarnings("unused")
-	public static ArrayList<MapLocation> pathTo(MapLocation start,MapLocation goal, int maxSearchDist) {
-		//clear path info for next computation
-		shortestPathLocated = false;
-		path = new ArrayList<MapLocation>();
-		pathingData = new Direction[width][height];//direction to arrive at this tile fastest
-		distanceData = new int[width][height];//closest distance to this tile
-		ArrayList<MapLocation> outermost = new ArrayList<MapLocation>();
-		outermost.add(start);
-		distanceData[start.x][start.y] = -maxSearchDist*10;//the 10 allows a multiple of 14 for diagonals
-		while(!shortestPathLocated&&outermost.size()>0){
-			//System.out.println("outermost Length is "+outermost.size());
-			outermost = getNewOutermost(outermost,start,goal);
+	public static ArrayList<MapLocation> pathTo(MapLocation start,MapLocation uncheckedGoal, int maxSearchDist) throws GameActionException {
+		//check that goal is inside the size of the coarsened map
+		MapLocation goal = trimGoal(uncheckedGoal);
+		//save pathingData for each starting location- it is a reusable solution for any goal!
+		if(storedPathingData.containsKey(start)){
+			pathingData = storedPathingData.get(start);
+		}else{
+			//clear path info for next computation
+			shortestPathLocated = false;
+			pathingData = new Direction[width][height];//direction to arrive at this tile fastest
+			distanceData = new int[width][height];//closest distance to this tile
+			ArrayList<MapLocation> outermost = new ArrayList<MapLocation>();
+			outermost.add(start);
+			distanceData[start.x][start.y] = -maxSearchDist*10;//the 10 allows a multiple of 14 for diagonals
+			while(!shortestPathLocated&&outermost.size()>0){
+				//System.out.println("outermost Length is "+outermost.size());
+				outermost = getNewOutermost(outermost,start,goal);
+			}
+			storedPathingData.put(start, pathingData);
 		}
-		listDirections(start,goal);//write maplocations to "path"
+		try{
+			listDirections(start,goal);//write maplocations to "path"\
+		}catch(Exception e){
+			printDirectionArray(start,goal);
+			MapAssessment.printBigCoarseMap(rc);
+			//RobotPlayer.die=true;
+			//the goal is inaccessible
+			//find a different goal
+		}
 		return path;
+	}
+	
+	public static MapLocation trimGoal(MapLocation uncheckedGoal){
+		//make sure the goal is inside bounds
+		return new MapLocation(Math.min(uncheckedGoal.x, width-1),Math.min(uncheckedGoal.y, height-1));
 	}
 	
 	private static ArrayList<MapLocation> getNewOutermost(ArrayList<MapLocation> outermost,MapLocation start,MapLocation goal){
@@ -111,6 +133,7 @@ public class BreadthFirst {
 	
 	private static void listDirections(MapLocation start,MapLocation end){
 		//a badly named function. It compiles a list of maplocations now.
+		path = new ArrayList<MapLocation>();
 		//(path used to be an ArrayList of Directions)
 		MapLocation currentLoc = end;
 		while(!currentLoc.equals(start)){
@@ -118,17 +141,48 @@ public class BreadthFirst {
 			path.add(0,currentLoc);
 			currentLoc = currentLoc.add(d.opposite());//current location moves backwards to start
 		}
+		path.add(0,start);
+		//if(path.size()==0)
+		//	path.add(end);
 		//System.out.println("located goal in "+path.size()+" dir steps!");
 	}
 
 	//once you have a path, you want to get the next direction you need to go in.
 	//this function should truncate the path as you move along it, and also give the next direction.
 	public static Direction getNextDirection(ArrayList<MapLocation> path, int bigBoxSize){
+		
+		//loop through the path, looking for the closest tile.
+		MapLocation myLocation = VectorFunctions.mldivide(rc.getLocation(),bigBoxSize);
+		int closestIndex = VectorFunctions.findClosest(path, myLocation);
+		
+		//delete all the tiles before the closest one
+		for(int i=0;i<closestIndex;i++){
+			path.remove(0);
+		}
+		
 		//just check the bottom member of the path, to see if it needs truncating
-		if(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize).equals(path.get(0))){
+		if(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize).equals(path.get(0))
+				&&path.size()>1){//will not delete the path entirely
 			path.remove(0);
 		}
 		return rc.getLocation().directionTo(VectorFunctions.bigBoxCenter(path.get(0),bigBoxSize));
+	}
+	
+	public static void printDirectionArray(MapLocation start, MapLocation goal){
+		System.out.println("Direction map:");
+		System.out.println("start: "+start+", goal: "+goal);
+		for(int x=0;x<BreadthFirst.pathingData[0].length;x++){
+			for(int y=0;y<BreadthFirst.pathingData.length;y++){
+				Direction d = BreadthFirst.pathingData[x][y];
+				if(d==null){
+					System.out.print("X");
+				}else{
+					System.out.print(d.ordinal());
+				}
+			}
+			System.out.println();
+		}
+		System.out.println("done printing map.");
 	}
 	
 	//mapData[0][0], array query apparently costs 6 bytecodes
