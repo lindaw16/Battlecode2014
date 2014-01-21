@@ -111,7 +111,7 @@ public class RobotPlayer{
 					else {
 						y = 0;
 					}
-					cowGrowth[i][j] = cowGrowth[i][j] + x + y; //cowGrowth is now a cum sum matrix
+					cowGrowth[i][j] = cowGrowth[i][j] + x + y; //cowGrowth is now a cumulative sum matrix
 					}
 				}
 			}
