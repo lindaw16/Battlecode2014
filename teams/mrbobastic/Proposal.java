@@ -26,7 +26,7 @@ public class Proposal {
 			}
 			int val = BreadthFirst.getMapData(p.loc);
 			if(val>0){//not off-map or entirely void-filled
-				p.dist+=(val-10000)*10;//TODO evaluate fudge factor of 10 for importance of void spaces
+				p.dist+=Math.pow((val-10000),2)*10;//TODO evaluate fudge factor of 10 for importance of void spaces
 				proposalList.add(p);
 			}
 		}
