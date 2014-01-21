@@ -83,7 +83,8 @@ public class RobotPlayer{
 		xmarksthespot = getRandomLocation();
 		mapHeight = rc.getMapHeight();
 		mapWidth = rc.getMapWidth();
-		System.out.println("creating robot "+rc.getType());
+		
+		//System.out.println("creating robot "+rc.getType());
 
 
 //		if((mapHeight + mapWidth) / 2 < 40){
@@ -123,7 +124,7 @@ public class RobotPlayer{
 //			pastrHQ = true;
 //			System.out.println("pastrHQ");
 //		}
-		System.out.println("EHIHEIWE:RJEW " + rc.senseRobotCount());
+		//System.out.println("EHIHEIWE:RJEW " + rc.senseRobotCount());
 		
 		if (rc.senseRobotCount() == 1)
 		{
@@ -144,7 +145,7 @@ public class RobotPlayer{
 		else{
 			attacker = true;
 			myBand = 100;
-			System.out.println("attacker");
+			//System.out.println("attacker");
 		}
 		
 		
@@ -158,7 +159,7 @@ public class RobotPlayer{
 		}
 		else if(rc.getType()==RobotType.NOISETOWER){
 			recalculateFirst();
-			System.out.println("noiseTower");
+			//System.out.println("noiseTower");
 		}
 		else if(rc.getType()==RobotType.SOLDIER){
 //			BreadthFirst.init(rc, bigBoxSize);
@@ -305,19 +306,32 @@ public class RobotPlayer{
 			}
 		}else{//NAVIGATION BY DOWNLOADED PATH
 			if(pastrHQ){
-				rc.construct(RobotType.PASTR);
+				//don't want to be too close to HQ
+				MapLocation ourHQ = rc.senseHQLocation();
+				if (rc.getLocation().distanceSquaredTo(ourHQ) < 5)
+				{
+					rc.move(rc.getLocation().directionTo(ourHQ).opposite());
+				} else{
+					rc.construct(RobotType.PASTR);
+				}
 			}
 			else if(noiseTower){
+				MapLocation ourPASTR = rc.sensePastrLocations(rc.getTeam())[0];
+				rc.move(rc.getLocation().directionTo(ourPASTR));
 				rc.construct(RobotType.NOISETOWER);
 			}
 			if (attacker)
 			{
 				navigateByPath(alliedRobots);
 			}
-			else if (herder)
+//			else if (herder)
+//			{
+//				//will do same thing as attacker for now
+//				navigateByPath(alliedRobots);				
+//			}
+			else
 			{
-				//will do same thing as attacker for now
-				navigateByPath(alliedRobots);				
+				navigateByPath(alliedRobots);
 			}
 			
 		//Direction towardEnemy = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
@@ -488,7 +502,7 @@ public class RobotPlayer{
 			xValue =  (int)(mPoint.x + xVal*noiseConst / constant);
 			yValue = (int)(mPoint.y + yVal*noiseConst / constant);
 		}
-		System.out.println(xValue+" "+yValue);
+		//System.out.println(xValue+" "+yValue);
 		pointsNoisetower[index] = new MapLocation(xValue, yValue);
 
 	}
@@ -515,7 +529,7 @@ public class RobotPlayer{
 		}
 		towerCount %= 8;
 		recalculateOne(towerCount);
-		System.out.println(noiseConst);
+		//System.out.println(noiseConst);
 		rc.attackSquare(pointsNoisetower[towerCount]);
 	}
 	
