@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map height="60" width="60">
-    <game seed="1365" rounds="2000"/>
+    <game seed="1337" rounds="2000"/>
     <symbols>
         <symbol terrain="NORMAL" type="TERRAIN" character="n"/>
         <symbol terrain="VOID" type="TERRAIN" character="v"/>
