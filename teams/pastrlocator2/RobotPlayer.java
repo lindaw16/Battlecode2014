@@ -29,7 +29,8 @@ public class RobotPlayer{
 	
 	static int countNumRobots = 0;
 	
-	public static double[][] cowGrowth; //hamster
+	public static double[][] cowGrowth  = rc.senseCowGrowth(); //hamster
+	public static double [][] newCowGrowth;
 	static int noise_count = 0;
 	static int pastr_count = 0;
 	
@@ -94,6 +95,8 @@ public class RobotPlayer{
 		
 		//COWGROWTH
 		// want to call this once at the beginning of the game
+		
+
 		if (noise_count >= 1 && pastr_count >=1){
 			cowGrowth = rc.senseCowGrowth();
 		//cumlative sum matrix
@@ -451,5 +454,40 @@ public class RobotPlayer{
 	private static int distanceTo(MapLocation l1, MapLocation l2){
 		return (int) (Math.pow(l1.x - l2.x, 2) + Math.pow(l1.y - l2.y, 2));
 	}
-	
-}
+
+	public static void locatePastr(double [][] cowGrowth){
+		for (int i=0; i < mapHeight +1 ; i++){
+			for (int j=0; j < mapHeight + 1; i++){
+				if (i == 0 && j!=0) {
+				newCowGrowth[i][j] = newCowGrowth[i-1][j] + cowGrowth[i][j];	
+				}
+				else if (j == 0 && i!=0) {
+				newCowGrowth[i][j] = newCowGrowth[i][j-1] + cowGrowth[i][j];	
+				}
+				else if (i == 0 && j ==0) {
+				newCowGrowth[i][j] = cowGrowth[i][j];	
+				}
+				else{
+				newCowGrowth[i][j] = cowGrowth[i][j] + newCowGrowth[i-1][j] + newCowGrowth[i][j-1] - newCowGrowth[i][j];
+				}
+			}				
+		}
+		double a = 0;
+		double b = 0;
+		int m = 24; //noisetower radius of attack
+		double max_sum = 0;
+		for (int i=0; i < mapHeight +1 -m ; i++){
+			for (int j=0; j < mapHeight + 1 -m; i++){
+			double best_submatrix_sum = newCowGrowth[i+m][j+m] - newCowGrowth[i][j+m] - newCowGrowth[i+m][j] + newCowGrowth[i][j];
+				if (best_submatrix_sum > max_sum){
+					max_sum = best_submatrix_sum;
+					a = i/2.0;
+					b = j/2.0;
+					MapLocation[][] NewPastrLoc = new MapLocation[(int) a][(int) b]; 
+				}
+		//signal for new noisetower/pastr to be built at/near i-m/2, j-m/2 		
+			}
+} 
+	}
+	}
+
