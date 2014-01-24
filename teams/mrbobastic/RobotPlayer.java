@@ -8,8 +8,8 @@ package mrbobastic;
 import java.util.ArrayList;
 import java.util.Random;
 
-import mrbobastic.BreadthFirst;
-import mrbobastic.VectorFunctions;
+//import mrbobastic.BreadthFirst;
+//import mrbobastic.VectorFunctions;
 import battlecode.common.*;
 
 public class RobotPlayer{
@@ -19,7 +19,8 @@ public class RobotPlayer{
 	static Random randall = new Random();
 	public static int directionalLooks[] = new int[]{0,1,-1,2,-2,3,-3,4};
 	static ArrayList<MapLocation> path = new ArrayList<MapLocation>();
-
+	
+	
 	static int bigBoxSize = 5;
 	static MapLocation enemyHQ;
 	
@@ -33,21 +34,22 @@ public class RobotPlayer{
 //	static int myBand200 = 200;
 	static int myBand = 100;
 	static int pathCreatedRound = -1;
-	static MapLocation xmarksthespot;
 	
 	
-	static int numGuards = 5;
+	static int numSoldiers = 10;
 	static int countNumRobots = 0;
 	
 	static boolean pastrHQ = false;
 	static boolean noiseTower = false;
-	static boolean herder = false;
-	static boolean attacker = false;
+	//static boolean herder = false;
+	//static boolean attacker = false;
+	static boolean soldier3000 = false;
+	static boolean soldier100 = false;
 	
 	static boolean buildOrNot = false;
 	static MapLocation pastrGoal = null;
-	static MapLocation enemyPastures[];
-	static MapLocation myPastures[];
+	//static MapLocation enemyPastures[];
+	//static MapLocation myPastures[];
 	
 //	static final int bigMapHerder = 14;
 //	static final int bigMapBuilder = 10;
@@ -70,19 +72,17 @@ public class RobotPlayer{
 	public static int mapHeight;
 	public static int mapWidth;
 	
-	
-	
+
 	
 	public static void run(RobotController rcIn) throws GameActionException{
 		rc=rcIn;
 		Comms.rc = rcIn;
 		randall.setSeed(rc.getRobot().getID());
 		enemyHQ = rc.senseEnemyHQLocation();
-		mPoint = rc.getLocation(); //should we put this in noisetower only?
 		
-		xmarksthespot = getRandomLocation();
 		mapHeight = rc.getMapHeight();
 		mapWidth = rc.getMapWidth();
+		mPoint = rc.getLocation();
 		
 		//System.out.println("creating robot "+rc.getType());
 
@@ -131,28 +131,29 @@ public class RobotPlayer{
 			pastrHQ = true;
 			//buildOrNot = true;	
 		}
-		else if (rc.senseRobotCount() == 2)
+		else if (countNumRobots == 2)
 		{
+			//mPoint = rc.getLocation();
+			System.out.println("HIHIHI");
 			noiseTower = true;
 		}
 			
-		else if (rc.senseRobotCount() <= numGuards + 2) //stick around our pastr
+		else if (countNumRobots <= numSoldiers + 2) //stick around our pastr
 		{
-			myBand = 3000;
-			attacker = true;
+			myBand = 100;
+			soldier100 = true;
 		}
 
 		else{
-			attacker = true;
-			myBand = 100;
+			soldier3000 = true;
+			myBand = 3000;
 			//System.out.println("attacker");
 		}
 		
-		
 		if(rc.getType()==RobotType.HQ){
 			rc.broadcast(101,VectorFunctions.locToInt(VectorFunctions.mldivide(rc.senseHQLocation(),bigBoxSize)));//this tells soldiers to stay near HQ to start
-			rc.broadcast(102,-1);//and to remain in squad 1
-			rc.broadcast(201, VectorFunctions.locToInt(VectorFunctions.mldivide(rc.senseHQLocation(), bigBoxSize)));
+			//rc.broadcast(102,-1);//and to remain in squad 1
+			rc.broadcast(3001, VectorFunctions.locToInt(VectorFunctions.mldivide(rc.senseHQLocation(), bigBoxSize)));
 			tryToSpawn();
 			BreadthFirst.init(rc, bigBoxSize);
 			rallyPoint = VectorFunctions.mladd(VectorFunctions.mldivide(VectorFunctions.mlsubtract(rc.senseEnemyHQLocation(),rc.senseHQLocation()),3),rc.senseHQLocation());
@@ -195,14 +196,17 @@ public class RobotPlayer{
 		//TODO consider updating the rally point to an allied pastr 
 
 		//first spawn as many little robots as possible
-		tryToSpawn();
+		//tryToSpawn();
 		
 		Robot[] alliedRobots = rc.senseNearbyGameObjects(Robot.class,100000000,rc.getTeam());
 		
 		//tell the guards to stay at our pastr
 		MapLocation[] ourPASTRs = rc.sensePastrLocations(rc.getTeam());
 		if (ourPASTRs.length > 0){
-			rc.broadcast(3000, VectorFunctions.locToInt(VectorFunctions.mldivide(ourPASTRs[0], bigBoxSize)));
+			//rc.broadcast(3000, 999);
+			//rc.broadcast(3000, VectorFunctions.locToInt(VectorFunctions.mldivide(ourPASTRs[0], bigBoxSize)));
+			
+			//System.out.println("hq is broadcasting " + VectorFunctions.locToInt(VectorFunctions.mldivide(ourPASTRs[0], bigBoxSize)));
 		}
 		
 		
@@ -211,7 +215,7 @@ public class RobotPlayer{
 		if(Clock.getRoundNum()>400&&alliedRobots.length<5){//call a retreat
 			MapLocation startPoint = findAverageAllyLocation(alliedRobots);
 			//Comms.findPathAndBroadcast(2,startPoint,rc.senseHQLocation(),bigBoxSize,2);
-			Comms.findPathAndBroadcast(2, startPoint, rc.senseEnemyHQLocation(), bigBoxSize, 2);
+			Comms.findPathAndBroadcast(2, startPoint, rc.senseHQLocation(), bigBoxSize, 2);
 			rallyPoint = rc.senseHQLocation();
 		}else{//not retreating
 			//tell them to go to the rally point
@@ -237,6 +241,7 @@ public class RobotPlayer{
 		}
 		
 		//after telling them where to go, consider spawning
+		tryToSpawn();
 	}
 
 	
@@ -282,7 +287,7 @@ public class RobotPlayer{
 	private static void runSoldier() throws GameActionException {
 		//follow orders from HQ
 		Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class,10000,rc.getTeam().opponent());
-		Robot[] alliedRobots = rc.senseNearbyGameObjects(Robot.class,rc.getType().sensorRadiusSquared*2,rc.getTeam());//was 
+		Robot[] alliedRobots = rc.senseNearbyGameObjects(Robot.class,rc.getType().sensorRadiusSquared*2,rc.getTeam());
 		
 
 		
@@ -305,25 +310,45 @@ public class RobotPlayer{
 				}
 			}
 		}else{//NAVIGATION BY DOWNLOADED PATH
-			if(pastrHQ){
+			if (soldier100)
+			{
+				//System.out.println("Soldier 100");
+				navigateByPath(alliedRobots);
+			}
+
+			else if(pastrHQ){
+				//System.out.println("EHLLO");
 				//don't want to be too close to HQ
 				MapLocation ourHQ = rc.senseHQLocation();
 				if (rc.getLocation().distanceSquaredTo(ourHQ) < 5)
 				{
 					rc.move(rc.getLocation().directionTo(ourHQ).opposite());
 				} else{
+					System.out.println("the pastr is at " + rc.getLocation().x + " " + rc.getLocation().y);
+					rc.broadcast(3000, rc.getLocation().x * 100 + rc.getLocation().y);
 					rc.construct(RobotType.PASTR);
 				}
 			}
 			else if(noiseTower){
-				MapLocation ourPASTR = rc.sensePastrLocations(rc.getTeam())[0];
-				rc.move(rc.getLocation().directionTo(ourPASTR));
+				System.out.println("HEYYY");
+				//MapLocation ourPASTR = rc.sensePastrLocations(rc.getTeam())[0];
+				//rc.move(rc.getLocation().directionTo(ourPASTR));
 				rc.construct(RobotType.NOISETOWER);
 			}
-			if (attacker)
+			else if (soldier3000)
 			{
-				navigateByPath(alliedRobots);
+				System.out.println("Soldier 3000 read broadcast is " + rc.readBroadcast(3000));
+				int PastrBroadcast = rc.readBroadcast(3000);
+				int PastrHQx = PastrBroadcast / 100;
+				int PastrHQy = PastrBroadcast - PastrHQx * 100;
+				MapLocation PastrHQ = new MapLocation(PastrHQx, PastrHQy);
+				//System.out.println("and now I think the PastrHQ is at " + PastrHQ.x + " " + PastrHQ.y);
+				Direction towardPastrHQ = rc.getLocation().directionTo(PastrHQ);
+				simpleMove(towardPastrHQ);
+				
+				//rc.readBroadcast(5000);
 			}
+			
 //			else if (herder)
 //			{
 //				//will do same thing as attacker for now
@@ -331,7 +356,7 @@ public class RobotPlayer{
 //			}
 			else
 			{
-				navigateByPath(alliedRobots);
+				System.out.println("BANANAS");
 			}
 			
 		//Direction towardEnemy = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
@@ -346,6 +371,10 @@ public class RobotPlayer{
 		if(path.size()<=1){//
 			//check if a new path is available
 			int broadcastCreatedRound = rc.readBroadcast(myBand);
+//			if (myBand == 3000)
+//			{
+//				System.out.println("my band is 3000 and my message is " + rc.readBroadcast(myBand));
+//			}
 			if(pathCreatedRound<broadcastCreatedRound){//download new place to go
 				pathCreatedRound = broadcastCreatedRound;
 				path = Comms.downloadPath();
