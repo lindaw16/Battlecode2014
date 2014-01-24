@@ -126,12 +126,16 @@ public class RobotPlayer{
 //		}
 		//System.out.println("EHIHEIWE:RJEW " + rc.senseRobotCount());
 		
-		if (rc.senseRobotCount() == 1)
+		
+		MapLocation[] ourPastrs = rc.sensePastrLocations(rc.getTeam());
+		
+		//if (rc.senseRobotCount() == 1)
+		if (ourPastrs.length == 0)
 		{
 			pastrHQ = true;
 			//buildOrNot = true;	
 		}
-		else if (countNumRobots == 2)
+		else if (countNumRobots == 2 || rc.getLocation().distanceSquaredTo(ourPastrs[0]) < 5)
 		{
 			//mPoint = rc.getLocation();
 			System.out.println("HIHIHI");
@@ -223,11 +227,16 @@ public class RobotPlayer{
 
 			//if the enemy builds a pastr, tell sqaud 2 to go there.
 			MapLocation[] enemyPastrs = rc.sensePastrLocations(rc.getTeam().opponent());
+
 			if(enemyPastrs.length>0){
 				MapLocation startPoint = findAverageAllyLocation(alliedRobots);
 				targetedPastr = getNextTargetPastr(enemyPastrs,startPoint);
 				//broadcast it
 				Comms.findPathAndBroadcast(2,startPoint,targetedPastr,bigBoxSize,2);
+			}
+			else 
+			{
+				rc.broadcast(5000, 888);
 			}
 		}
 		
@@ -288,7 +297,6 @@ public class RobotPlayer{
 		//follow orders from HQ
 		Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class,10000,rc.getTeam().opponent());
 		Robot[] alliedRobots = rc.senseNearbyGameObjects(Robot.class,rc.getType().sensorRadiusSquared*2,rc.getTeam());
-		
 
 		
 //		if(rc.getHealth()<10){
@@ -324,28 +332,33 @@ public class RobotPlayer{
 				{
 					rc.move(rc.getLocation().directionTo(ourHQ).opposite());
 				} else{
-					System.out.println("the pastr is at " + rc.getLocation().x + " " + rc.getLocation().y);
+					//System.out.println("the pastr is at " + rc.getLocation().x + " " + rc.getLocation().y);
 					rc.broadcast(3000, rc.getLocation().x * 100 + rc.getLocation().y);
 					rc.construct(RobotType.PASTR);
 				}
 			}
 			else if(noiseTower){
-				System.out.println("HEYYY");
+				//System.out.println("HEYYY");
 				//MapLocation ourPASTR = rc.sensePastrLocations(rc.getTeam())[0];
 				//rc.move(rc.getLocation().directionTo(ourPASTR));
 				rc.construct(RobotType.NOISETOWER);
 			}
 			else if (soldier3000)
 			{
-				System.out.println("Soldier 3000 read broadcast is " + rc.readBroadcast(3000));
-				int PastrBroadcast = rc.readBroadcast(3000);
-				int PastrHQx = PastrBroadcast / 100;
-				int PastrHQy = PastrBroadcast - PastrHQx * 100;
-				MapLocation PastrHQ = new MapLocation(PastrHQx, PastrHQy);
-				//System.out.println("and now I think the PastrHQ is at " + PastrHQ.x + " " + PastrHQ.y);
-				Direction towardPastrHQ = rc.getLocation().directionTo(PastrHQ);
-				simpleMove(towardPastrHQ);
+				//System.out.println("Soldier 3000 read broadcast is " + rc.readBroadcast(3000));
+//				int PastrBroadcast = rc.readBroadcast(3000);
+//				int PastrHQx = PastrBroadcast / 100;
+//				int PastrHQy = PastrBroadcast - PastrHQx * 100;
+//				MapLocation PastrHQ = new MapLocation(PastrHQx, PastrHQy);
+//				//System.out.println("and now I think the PastrHQ is at " + PastrHQ.x + " " + PastrHQ.y);
+//				Direction towardPastrHQ = rc.getLocation().directionTo(PastrHQ);
+//				simpleMove(towardPastrHQ);
 				
+//				MapLocation PastrHQ = protectThisPastr(rc.readBroadcast(3000));
+//				Direction towardPastrHQ = rc.getLocation().directionTo(PastrHQ);
+//				simpleMove(towardPastrHQ);
+				
+				protectPastr(rc.readBroadcast(3000));
 				//rc.readBroadcast(5000);
 			}
 			
@@ -379,8 +392,23 @@ public class RobotPlayer{
 				pathCreatedRound = broadcastCreatedRound;
 				path = Comms.downloadPath();
 			}else{//just waiting around. Consider building a pastr
-//WE SHOULD PUT JACQUI'S PASTR FINDING CODE HERE
-				considerBuildingPastr(alliedRobots);
+				if (rc.readBroadcast(5000) == 888 || rc.getLocation().distanceSquaredTo(rc.senseHQLocation()) < 5 || rc.senseRobotCount() > 10)
+				{
+					//no enemies around HQ
+					//WE SHOULD PUT JACQUI'S PASTR FINDING CODE HERE
+					System.out.println(rc.getRobot().getID() + " BUILD A PASTR");
+					considerBuildingPastr(alliedRobots);
+				}
+				else 
+				{
+					//ACTUALLY I AM JUST MAKING THE ROBOT DEFEND OUR PASTR
+					System.out.println (rc.getRobot().getID() + " PROTECT THE PASTRS");
+//					MapLocation PastrHQ = protectThisPastr(rc.readBroadcast(3000));
+//					Direction towardPastrHQ = rc.getLocation().directionTo(PastrHQ);
+//					simpleMove(towardPastrHQ);
+					protectPastr(3000);
+				}
+
 			}
 		}
 		if(path.size()>0){
@@ -411,10 +439,12 @@ public class RobotPlayer{
 								buildPastr(checkLoc);
 							}else{
 								MapLocation closestAlliedPastr = VectorFunctions.findClosest(alliedPastrs, checkLoc);
-								if(closestAlliedPastr.distanceSquaredTo(checkLoc)>GameConstants.PASTR_RANGE*5){
+								if(closestAlliedPastr.distanceSquaredTo(checkLoc)>GameConstants.PASTR_RANGE*8){
 									buildPastr(checkLoc);
 								}
 							}
+				
+							
 						}
 					}
 				}
@@ -424,10 +454,18 @@ public class RobotPlayer{
 
 	private static void buildPastr(MapLocation checkLoc) throws GameActionException {
 		rc.broadcast(50, Clock.getRoundNum());
+
 		for(int i=0;i<100;i++){//for 100 rounds, try to build a pastr
 			if(rc.isActive()){
 				if(rc.getLocation().equals(checkLoc)){
+					
+//					MapLocation PastrHQ = protectThisPastr(rc.readBroadcast(3000));
+//					if (rc.senseObjectAtLocation(PastrHQ) == null)
+//					{
+//						rc.broadcast(3000, rc.getLocation().x * 100 + rc.getLocation().y);			
+//					}
 					rc.construct(RobotType.PASTR);
+					
 				}else{
 					Direction towardCows = rc.getLocation().directionTo(checkLoc);
 					BasicPathing.tryToMove(towardCows, true,true, true);
@@ -536,6 +574,31 @@ public class RobotPlayer{
 
 	}
 	
+//	private static MapLocation protectThisPastr(int loc) throws GameActionException
+//	{
+//		//int PastrBroadcast = rc.readBroadcast(3000);
+//		int PastrHQx = loc / 100;
+//		int PastrHQy = loc - PastrHQx * 100;
+//		MapLocation PastrHQ = new MapLocation(PastrHQx, PastrHQy);
+//		//System.out.println("and now I think the PastrHQ is at " + PastrHQ.x + " " + PastrHQ.y);
+////		Direction towardPastrHQ = rc.getLocation().directionTo(PastrHQ);
+////		simpleMove(towardPastrHQ);
+//		return PastrHQ;
+//	}
+	
+	
+	private static void protectPastr(int loc) throws GameActionException
+	{
+		//int PastrBroadcast = rc.readBroadcast(3000);
+		int PastrHQx = loc / 100;
+		int PastrHQy = loc - PastrHQx * 100;
+		MapLocation PastrHQ = new MapLocation(PastrHQx, PastrHQy);
+		//System.out.println("and now I think the PastrHQ is at " + PastrHQ.x + " " + PastrHQ.y);
+//		Direction towardPastrHQ = rc.getLocation().directionTo(PastrHQ);
+//		simpleMove(towardPastrHQ);
+		Direction towardPastrHQ = rc.getLocation().directionTo(PastrHQ);
+		simpleMove(towardPastrHQ);
+	}
 	
 	private static void runNoisetower() throws GameActionException {
 //		towerCount %= 8;
