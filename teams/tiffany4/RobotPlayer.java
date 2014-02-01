@@ -1,8 +1,4 @@
-package pastrlocator2;
-
-//how many squares can the noise tower shoot? 24 (25 is edge)
-//Noisetower location search square -- coarseness of square is 50*50 map units
-//other constraints: want it to be near HQ if possible
+package tiffany4;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,18 +25,18 @@ public class RobotPlayer{
 	
 	static int countNumRobots = 0;
 	
-	public static double[][] cowGrowth  = rc.senseCowGrowth(); //hamster
+	public static double[][] cowGrowth; //hamster
 	public static double [][] newCowGrowth;
 	static int noise_count = 0;
-	static int pastr_count = 0;
+	static int pastr_count = 0; 
+	public static MapLocation newPastrLoc; 
 	
 	static boolean pastrHQ = false;
 	static boolean noiseTower = false;
 	static boolean herder = false;
 	static boolean attacker = false;
-	static boolean defender = false;
-	
 	static boolean buildOrNot = false;
+	
 	static MapLocation pastrGoal = null;
 	static MapLocation enemyPastures[];
 	static MapLocation myPastures[];
@@ -67,10 +63,20 @@ public class RobotPlayer{
 	public static int mapHeight;
 	public static int mapWidth;
 	
+	/*
+	 * Message passing codes:
+	 * 1 - attack this PASTR
+	 * 1 + xCoord + 0 + yCoord
+	 * 
+	 * 
+	 */
+	
+	
 	public static void run(RobotController rcIn) throws GameActionException{
 		rc=rcIn;
 		randall.setSeed(rc.getRobot().getID());
 		mPoint = rc.getLocation();
+		cowGrowth = rc.senseCowGrowth();
 		
 		mapHeight = rc.getMapHeight();
 		mapWidth = rc.getMapWidth();
@@ -89,62 +95,8 @@ public class RobotPlayer{
 			mapBuilderConst = bigMapBuilder;
 		}
 		
-		mapHerderConst += 4;
-		mapBuilderConst += 4;
-		
-		
-		//COWGROWTH
-		// want to call this once at the beginning of the game
-		
- /*
-		if (noise_count >= 1 && pastr_count >=1){
-			cowGrowth = rc.senseCowGrowth();
-		//cumlative sum matrix
-			double x = 0;
-			double y = 0;
-			for (int i=0; i < mapHeight +1 ; i++){
-				for (int j=0; j < mapHeight + 1; i++){
-					if (j>0){
-					x += cowGrowth[i][j-1];
-					}
-					else{
-						x = 0;}
-					if (i > 0){
-						y += cowGrowth[i-1][j]; }
-					else {
-						y = 0;
-					}
-					cowGrowth[i][j] = cowGrowth[i][j] + x + y; //cowGrowth is now a cumulative sum matrix
-					}
-				}
-			}
-			
-			int a = 0;
-			int b = 0;
-			int m = 24; //noisetower radius of attack
-			double max_sum = 0;
-			for (int i=0; i < mapHeight +1 -m ; i++){
-				for (int j=0; j < mapHeight + 1 -m; i++){
-				double best_submatrix_sum = cowGrowth[i+m][j+m] - cowGrowth[i][j+m] - cowGrowth[i+m][j] + cowGrowth[i][j];
-					if (best_submatrix_sum > max_sum){
-						max_sum = best_submatrix_sum;
-						a = i;
-						b = j;
-					}
-			//signal for new noisetower/pastr to be built at/near i-m/2, j-m/2 
-				
-				}
-			}
-		
-	
-*/			
-			
-			//Cumulative sum matrix calculation 
-		
-		//cowGrowth 
-		
-		
-		
+		mapHerderConst += 2;
+		mapBuilderConst += 2;
 		
 		countNumRobots = rc.senseRobotCount();
 		
@@ -164,10 +116,6 @@ public class RobotPlayer{
 			noiseTower = true;
 			System.out.println("noisetower");
 			
-		}
-		else if(countNumRobots < 5){
-			defender = true;
-			System.out.println("defender");
 		}
 		else{
 			attacker = true;
@@ -249,15 +197,13 @@ public class RobotPlayer{
 		
 		Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class,10000,rc.getTeam().opponent());
 		
-		if(pastrHQ){
-			rc.construct(RobotType.PASTR);
-			pastr_count += 1;
-		}
-		else if(noiseTower){
-			rc.construct(RobotType.NOISETOWER);
-			noise_count += 1;
-		}
-		
+//		if(pastrHQ){
+//			rc.construct(RobotType.PASTR);
+//		}
+//		else if(noiseTower){
+//			rc.construct(RobotType.NOISETOWER);
+//		}
+//		
 		if(rc.getHealth()<10){
 			System.out.println("self-destruct!");
 			rc.selfDestruct();
@@ -282,7 +228,11 @@ public class RobotPlayer{
 				Direction towardClosest = rc.getLocation().directionTo(closestEnemyLoc);
 				simpleMove(towardClosest);
 			}
-		}else{
+		}
+		
+		
+		
+		else{
 			
 			if(attacker) {
 				boolean alreadySense = false;
@@ -299,6 +249,7 @@ public class RobotPlayer{
 					}
 					pastrGoal = findClosest(enemyPastures, rc.getLocation());
 				}
+				
 				if(path.size() == 0){
 					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
 				}
@@ -316,6 +267,10 @@ public class RobotPlayer{
 				if(path.size() == 0){
 					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
 				}
+			}
+			else if(pastrHQ || noiseTower){
+				path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(newPastrLoc,bigBoxSize), 100000);
+				System.out.println("Trying to find ideal pastr loc"); 
 			}
 			if(buildOrNot) //no enemies, build a pasture
 			  {
@@ -340,6 +295,14 @@ public class RobotPlayer{
 
 
 			//follow breadthFirst path
+			if (pastrHQ || noiseTower) {
+				if(pastrHQ){
+					rc.construct(RobotType.PASTR);
+				}
+				else if(noiseTower){
+					rc.construct(RobotType.NOISETOWER);
+				}
+			}
 			Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
 			BasicPathing.tryToMove(bdir, true, rc, directionalLooks, allDirections);
 		}
@@ -454,5 +417,39 @@ public class RobotPlayer{
 		return (int) (Math.pow(l1.x - l2.x, 2) + Math.pow(l1.y - l2.y, 2));
 	}
 
-	}
 
+	public static void locatePastr(double [][] cowGrowth){
+		for (int i=0; i < mapHeight +1 ; i++){
+			for (int j=0; j < mapHeight + 1; i++){
+				if (i == 0 && j!=0) {
+				newCowGrowth[i][j] = newCowGrowth[i-1][j] + cowGrowth[i][j];	
+				}
+				else if (j == 0 && i!=0) {
+				newCowGrowth[i][j] = newCowGrowth[i][j-1] + cowGrowth[i][j];	
+				}
+				else if (i == 0 && j ==0) {
+				newCowGrowth[i][j] = cowGrowth[i][j];	
+				}
+				else{
+				newCowGrowth[i][j] = cowGrowth[i][j] + newCowGrowth[i-1][j] + newCowGrowth[i][j-1] - newCowGrowth[i][j];
+				}
+			}				
+		}
+		double a = 0;
+		double b = 0;
+		int m = 24; //noisetower radius of attack
+		double max_sum = 0;
+		for (int i=0; i < mapHeight +1 -m ; i++){
+			for (int j=0; j < mapHeight + 1 -m; i++){
+			double best_submatrix_sum = newCowGrowth[i+m][j+m] - newCowGrowth[i][j+m] - newCowGrowth[i+m][j] + newCowGrowth[i][j];
+				if (best_submatrix_sum > max_sum){
+					max_sum = best_submatrix_sum;
+					a = i/2.0;
+					b = j/2.0;
+					newPastrLoc = new MapLocation((int) a, (int) b); 
+				}
+		//signal for new noisetower/pastr to be built at/near i-m/2, j-m/2 		
+			}
+} 
+	}
+}
