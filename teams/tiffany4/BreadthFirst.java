@@ -125,7 +125,8 @@ public class BreadthFirst {
 	//this function should truncate the path as you move along it, and also give the next direction.
 	public static Direction getNextDirection(ArrayList<MapLocation> path, int bigBoxSize){
 		//just check the bottom member of the path, to see if it needs truncating
-		if(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize).equals(path.get(0))){
+		System.out.println("GET NEXT DIRECTION");
+		if(path.size()>1 && VectorFunctions.mldivide(rc.getLocation(),bigBoxSize).equals(path.get(0))){
 			path.remove(0);
 		}
 		return rc.getLocation().directionTo(VectorFunctions.bigBoxCenter(path.get(0),bigBoxSize));
