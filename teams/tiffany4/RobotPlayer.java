@@ -63,6 +63,8 @@ public class RobotPlayer{
 	public static int mapHeight;
 	public static int mapWidth;
 	
+	public static boolean firstRobot = false;
+	
 	/*
 	 * Message passing codes:
 	 * 1 - attack this PASTR
@@ -80,7 +82,7 @@ public class RobotPlayer{
 		
 		mapHeight = rc.getMapHeight();
 		mapWidth = rc.getMapWidth();
-		System.out.println("creating robot "+rc.getType());
+		newCowGrowth = new double[mapWidth][mapHeight];
 		
 		if((mapHeight + mapWidth) / 2 < 40){
 			mapHerderConst = smallMapHerder;
@@ -114,6 +116,7 @@ public class RobotPlayer{
 		}
 		else if(countNumRobots == 1){
 			noiseTower = true;
+			firstRobot = true;
 			System.out.println("noisetower");
 			
 		}
@@ -126,7 +129,11 @@ public class RobotPlayer{
 			
 		}
 		else if(rc.getType()==RobotType.NOISETOWER){
+			System.out.println("PASTR GOALLLLL!");
 			recalculateFirst();
+			System.out.println("PASTR GOALLLLL!");
+		//	locatePastr(cowGrowth);
+			//System.out.println("PASTR GOAL!: "+newPastrLoc.x+" "+newPastrLoc.y);
 			System.out.println("noiseTower");
 		}
 		else if(rc.getType()==RobotType.SOLDIER){
@@ -450,6 +457,6 @@ public class RobotPlayer{
 				}
 		//signal for new noisetower/pastr to be built at/near i-m/2, j-m/2 		
 			}
-} 
+		} 
 	}
 }
