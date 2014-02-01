@@ -30,7 +30,7 @@ public class RobotPlayer{
 	static int countNumRobots = 0;
 	
 	public static double[][] cowGrowth; //hamster
-	public static double [][] newCowGrowth;
+	public static double[][] newCowGrowth;
 	static int noise_count = 0;
 	static int pastr_count = 0;
 	
