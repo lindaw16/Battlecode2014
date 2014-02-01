@@ -25,12 +25,6 @@ public class RobotPlayer{
 	
 	static int countNumRobots = 0;
 	
-	public static double[][] cowGrowth; //hamster
-	public static double [][] newCowGrowth;
-	static int noise_count = 0;
-	static int pastr_count = 0; 
-	public static MapLocation newPastrLoc; 
-	
 	static boolean pastrHQ = false;
 	static boolean noiseTower = false;
 	static boolean herder = false;
@@ -63,8 +57,9 @@ public class RobotPlayer{
 	public static int mapHeight;
 	public static int mapWidth;
 	
-	public static boolean firstRobot = false;
-	
+	static double newCowGrowth[][];
+	static double cowGrowth[][];
+	static MapLocation newPastrLoc;
 	/*
 	 * Message passing codes:
 	 * 1 - attack this PASTR
@@ -78,11 +73,15 @@ public class RobotPlayer{
 		rc=rcIn;
 		randall.setSeed(rc.getRobot().getID());
 		mPoint = rc.getLocation();
-		cowGrowth = rc.senseCowGrowth();
 		
 		mapHeight = rc.getMapHeight();
 		mapWidth = rc.getMapWidth();
+		cowGrowth = rc.senseCowGrowth();
 		newCowGrowth = new double[mapWidth][mapHeight];
+		
+		
+		System.out.println("creating robot "+rc.getType());
+		
 		
 		if((mapHeight + mapWidth) / 2 < 40){
 			mapHerderConst = smallMapHerder;
@@ -116,7 +115,6 @@ public class RobotPlayer{
 		}
 		else if(countNumRobots == 1){
 			noiseTower = true;
-			firstRobot = true;
 			System.out.println("noisetower");
 			
 		}
@@ -129,11 +127,7 @@ public class RobotPlayer{
 			
 		}
 		else if(rc.getType()==RobotType.NOISETOWER){
-			System.out.println("PASTR GOALLLLL!");
 			recalculateFirst();
-			System.out.println("PASTR GOALLLLL!");
-		//	locatePastr(cowGrowth);
-			//System.out.println("PASTR GOAL!: "+newPastrLoc.x+" "+newPastrLoc.y);
 			System.out.println("noiseTower");
 		}
 		else if(rc.getType()==RobotType.SOLDIER){
@@ -164,6 +158,7 @@ public class RobotPlayer{
 					}
 				}catch (Exception e){
 					System.out.println(e);
+					e.printStackTrace();
 					
 				}
 			}
@@ -204,13 +199,13 @@ public class RobotPlayer{
 		
 		Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class,10000,rc.getTeam().opponent());
 		
-//		if(pastrHQ){
-//			rc.construct(RobotType.PASTR);
-//		}
-//		else if(noiseTower){
-//			rc.construct(RobotType.NOISETOWER);
-//		}
-//		
+		if(pastrHQ){
+			rc.construct(RobotType.PASTR);
+		}
+		else if(noiseTower){
+			rc.construct(RobotType.NOISETOWER);
+		}
+		
 		if(rc.getHealth()<10){
 			System.out.println("self-destruct!");
 			rc.selfDestruct();
@@ -235,11 +230,7 @@ public class RobotPlayer{
 				Direction towardClosest = rc.getLocation().directionTo(closestEnemyLoc);
 				simpleMove(towardClosest);
 			}
-		}
-		
-		
-		
-		else{
+		}else{
 			
 			if(attacker) {
 				boolean alreadySense = false;
@@ -256,7 +247,6 @@ public class RobotPlayer{
 					}
 					pastrGoal = findClosest(enemyPastures, rc.getLocation());
 				}
-				
 				if(path.size() == 0){
 					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
 				}
@@ -274,10 +264,6 @@ public class RobotPlayer{
 				if(path.size() == 0){
 					path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(pastrGoal,bigBoxSize), 100000);
 				}
-			}
-			else if(pastrHQ || noiseTower){
-				path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(newPastrLoc,bigBoxSize), 100000);
-				System.out.println("Trying to find ideal pastr loc"); 
 			}
 			if(buildOrNot) //no enemies, build a pasture
 			  {
@@ -302,14 +288,6 @@ public class RobotPlayer{
 
 
 			//follow breadthFirst path
-			if (pastrHQ || noiseTower) {
-				if(pastrHQ){
-					rc.construct(RobotType.PASTR);
-				}
-				else if(noiseTower){
-					rc.construct(RobotType.NOISETOWER);
-				}
-			}
 			Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
 			BasicPathing.tryToMove(bdir, true, rc, directionalLooks, allDirections);
 		}
@@ -423,6 +401,7 @@ public class RobotPlayer{
 	private static int distanceTo(MapLocation l1, MapLocation l2){
 		return (int) (Math.pow(l1.x - l2.x, 2) + Math.pow(l1.y - l2.y, 2));
 	}
+	
 
 
 	public static void locatePastr(double [][] cowGrowth){
