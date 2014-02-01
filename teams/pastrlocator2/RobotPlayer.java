@@ -29,7 +29,7 @@ public class RobotPlayer{
 	
 	static int countNumRobots = 0;
 	
-	public static double[][] cowGrowth  = rc.senseCowGrowth(); //hamster
+	public static double[][] cowGrowth; //hamster
 	public static double [][] newCowGrowth;
 	static int noise_count = 0;
 	static int pastr_count = 0;
@@ -71,6 +71,7 @@ public class RobotPlayer{
 		rc=rcIn;
 		randall.setSeed(rc.getRobot().getID());
 		mPoint = rc.getLocation();
+		cowGrowth = rc.senseCowGrowth();
 		
 		mapHeight = rc.getMapHeight();
 		mapWidth = rc.getMapWidth();
